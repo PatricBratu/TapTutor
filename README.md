@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # TapTutor — Aplicație React
 
 ## Instalare și pornire
@@ -57,3 +58,6 @@ taptutor-app/
 ├── vite.config.js
 └── package.json
 ```
+=======
+# TapTutor
+>>>>>>> 0da091b86f7c11a6dd204dcb9efa0ce405811c2c
