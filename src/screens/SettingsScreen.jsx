@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 
 import BottomNav from '../components/BottomNav'
 
-export default function SettingsScreen({ onNavigate }) {
+export default function SettingsScreen({ onNavigate, onLogout }) {
   const [apiKey, setApiKey] = useState('')
   const [saved, setSaved] = useState(false)
   const [hasKey, setHasKey] = useState(false)
@@ -75,15 +75,13 @@ export default function SettingsScreen({ onNavigate }) {
             onBlur={e => e.target.style.borderColor='var(--border)'}
           />
 
-          <div style={{ display:'flex', gap:8 }}>
+          <div style={{ display:'flex', flexDirection: 'column', gap:8 }}>
             <button className="btn-primary" onClick={save} style={{ flex:2 }}>
               {saved ? '✅ Salvat!' : '💾 Salvează'}
             </button>
-            {hasKey && (
-              <button className="btn-ghost" onClick={clearKey} style={{ flex:1 }}>
-                🗑️ Șterge
-              </button>
-            )}
+            <button className="btn-outline">Istoric plăți</button>
+            <button className="btn-outline">Notificări</button>
+            <button className="btn-outline" onClick={onLogout} style={{ borderColor: 'var(--red)', color: 'var(--red)' }}>Deconectare (Sign Out)</button>
           </div>
         </div>
 

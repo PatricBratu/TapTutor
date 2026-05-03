@@ -7,6 +7,7 @@ import ProgressScreen  from './screens/ProgressScreen'
 import HomeScreen      from './screens/HomeScreen'
 import PricingScreen   from './screens/PricingScreen'
 import SettingsScreen  from './screens/SettingsScreen'
+import AuthScreen      from './screens/AuthScreen'
 
 const DEFAULT_API_KEY = 'AIzaSyCwRbb1PUaO1Vj4uHPRbdgEoOOjfGkK4qA'
 
@@ -14,11 +15,20 @@ export default function App() {
   const [screen, setScreen]   = useState('splash')
   const [subject, setSubject] = useState(null)
   const [key, setKey]         = useState(0)
+  const [user, setUser]       = useState(null)
 
   // Set default API key on first load
   useEffect(() => {
     if (!localStorage.getItem('taptutor_gemini_key')) {
       localStorage.setItem('taptutor_gemini_key', DEFAULT_API_KEY)
+    }
+    const savedUser = localStorage.getItem('taptutor_user')
+    if (savedUser) {
+      try {
+        setUser(JSON.parse(savedUser))
+      } catch (e) {
+        console.error(e)
+      }
     }
   }, [])
 
@@ -28,7 +38,25 @@ export default function App() {
   }, [])
 
   const handleSplashDone = useCallback(() => {
+    // Verificăm dacă avem user, dacă nu îl trimitem la auth
+    const savedUser = localStorage.getItem('taptutor_user')
+    if (savedUser) {
+      navigate('home')
+    } else {
+      navigate('auth')
+    }
+  }, [navigate])
+
+  const handleLogin = useCallback((userData) => {
+    setUser(userData)
+    localStorage.setItem('taptutor_user', JSON.stringify(userData))
     navigate('home')
+  }, [navigate])
+
+  const handleLogout = useCallback(() => {
+    setUser(null)
+    localStorage.removeItem('taptutor_user')
+    navigate('auth')
   }, [navigate])
 
   const handleNFCDetected = useCallback((subjectObj) => {
@@ -51,6 +79,8 @@ export default function App() {
         return <SplashScreen onDone={handleSplashDone} />
       case 'nfc':
         return <NFCScreen onDetected={handleNFCDetected} onNavigate={handleNavigate} />
+      case 'auth':
+        return <AuthScreen onLogin={handleLogin} />
       case 'home':
         return <HomeScreen onSubjectSelect={handleSubjectSelect} onNavigate={handleNavigate} />
       case 'chat':
@@ -62,7 +92,7 @@ export default function App() {
       case 'pricing':
         return <PricingScreen onNavigate={handleNavigate} />
       case 'settings':
-        return <SettingsScreen onNavigate={handleNavigate} />
+        return <SettingsScreen onNavigate={handleNavigate} onLogout={handleLogout} />
       default:
         return <HomeScreen onSubjectSelect={handleSubjectSelect} onNavigate={handleNavigate} />
     }

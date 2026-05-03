@@ -1,4 +1,4 @@
-const CACHE_NAME = 'taptutor-v1';
+const CACHE_NAME = 'taptutor-v2';
 const ASSETS = ['/', '/index.html'];
 
 self.addEventListener('install', event => {
