@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
-import StatusBar from '../components/StatusBar'
+
 import BottomNav from '../components/BottomNav'
 
 const SUBJECTS = {
@@ -177,7 +177,7 @@ export default function ChatScreen({ subject, onNavigate }) {
 
   return (
     <div style={{ display:'flex', flexDirection:'column', flex:1, position:'relative', minHeight:0 }}>
-      <StatusBar />
+
 
       {/* NFC banner */}
       <div className="nfc-banner">

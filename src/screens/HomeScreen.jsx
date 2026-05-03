@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import StatusBar from '../components/StatusBar'
+
 import BottomNav from '../components/BottomNav'
 
 const SUBJECTS = [
@@ -20,7 +20,7 @@ export default function HomeScreen({ onSubjectSelect, onNavigate }) {
 
   return (
     <div style={{ display:'flex', flexDirection:'column', flex:1, position:'relative', minHeight:0 }}>
-      <StatusBar />
+
 
       <div className="app-header">
         <div className="logo"><span className="logo-icon">🎓</span> TapTutor</div>

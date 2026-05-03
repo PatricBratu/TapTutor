@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">TapTutor</string>
+    <string name="title_activity_main">TapTutor</string>
+    <string name="package_name">com.taptutor.app</string>
+    <string name="custom_url_scheme">com.taptutor.app</string>
+</resources>

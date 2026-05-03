@@ -1,63 +1,33 @@
-<<<<<<< HEAD
-# TapTutor — Aplicație React
+# TapTutor — PWA cu NFC + Gemini AI
 
-## Instalare și pornire
+Profesorul tău personal în buzunar. Tutore AI cu carduri NFC pentru elevi.
 
-### 1. Instalează Node.js
-Descarcă de la: https://nodejs.org (versiunea LTS)
+## Instalare
 
-### 2. Instalează dependențele
 ```bash
-cd taptutor-app
 npm install
-```
-
-### 3. (Opțional) Adaugă cheia API Anthropic
-Deschide `src/screens/ChatScreen.jsx` și înlocuiește `'x-api-key': ''` cu cheia ta Claude API.
-
-### 4. Pornește aplicația
-```bash
 npm run dev
 ```
 
-Deschide http://localhost:5173 în browser.
+## Deploy pe Vercel
 
----
+```bash
+npx vercel --prod
+```
 
-## Ecrane incluse
+## Ecrane
 
 | Ecran | Descriere |
 |-------|-----------|
 | 🌟 Splash | Animație de pornire |
-| 📡 NFC Tap | Simulare detectare card NFC |
-| 💬 Chat | Chat AI cu tutorele (Claude) + diagrame |
-| 📝 Quiz | Teste cu multiple choice + feedback |
-| 📊 Progres | Statistici, grafice, materii |
 | 🏠 Acasă | Selectare materie, activitate recentă |
-| 💎 Premium | Planuri de abonament |
+| 📡 NFC Scan | Citire reală tag NFC + selectare manuală |
+| 💬 Chat | Chat AI cu Gemini + diagrame |
+| 📝 Teste | Quiz multiple choice + feedback |
+| 📊 Progres | Statistici, grafice, materii |
+| ⚙️ Setări | Cheie API, instrucțiuni NFC |
 
-## Structura proiectului
-```
-taptutor-app/
-├── src/
-│   ├── screens/
-│   │   ├── SplashScreen.jsx
-│   │   ├── NFCScreen.jsx
-│   │   ├── ChatScreen.jsx
-│   │   ├── QuizScreen.jsx
-│   │   ├── ProgressScreen.jsx
-│   │   ├── HomeScreen.jsx
-│   │   └── PricingScreen.jsx
-│   ├── components/
-│   │   ├── StatusBar.jsx
-│   │   └── BottomNav.jsx
-│   ├── App.jsx
-│   ├── main.jsx
-│   └── index.css
-├── index.html
-├── vite.config.js
-└── package.json
-```
-=======
-# TapTutor
->>>>>>> 0da091b86f7c11a6dd204dcb9efa0ce405811c2c
+## Programare tag-uri NFC
+
+Folosește app-ul **NFC Tools** și scrie textul:
+`Fizica`, `Matematica`, `Chimie`, `Biologie`, `Informatica`, `Istorie`

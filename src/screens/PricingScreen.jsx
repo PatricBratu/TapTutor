@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import StatusBar from '../components/StatusBar'
+
 import BottomNav from '../components/BottomNav'
 
 export default function PricingScreen({ onNavigate }) {
@@ -69,7 +69,7 @@ export default function PricingScreen({ onNavigate }) {
 
   return (
     <div style={{ display:'flex', flexDirection:'column', flex:1, position:'relative', minHeight:0 }}>
-      <StatusBar />
+
       <div className="app-header">
         <div className="logo">
           <button onClick={() => onNavigate('home')} style={{ background:'transparent', border:'none', fontSize:22, cursor:'pointer', color:'var(--text)', padding:0, display:'flex', alignItems:'center' }}>←</button>

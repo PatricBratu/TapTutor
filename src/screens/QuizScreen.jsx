@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import StatusBar from '../components/StatusBar'
+
 import BottomNav from '../components/BottomNav'
 
 const QUIZZES = {
@@ -110,7 +110,7 @@ export default function QuizScreen({ subject, onNavigate }) {
 
   return (
     <div style={{ display:'flex', flexDirection:'column', flex:1, position:'relative', minHeight:0 }}>
-      <StatusBar />
+
 
       {/* Header */}
       <div className="app-header">

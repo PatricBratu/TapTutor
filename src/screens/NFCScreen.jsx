@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react'
-import StatusBar from '../components/StatusBar'
+
 import BottomNav from '../components/BottomNav'
+import { CapacitorNfc } from '@capgo/capacitor-nfc'
+import { Capacitor } from '@capacitor/core'
 
 const SUBJECT_MAP = {
   'fizica':      { name: 'Fizică',       emoji: '⚛️',  color: '#4ECDC4', bg: '#e8faf9' },
@@ -28,8 +30,23 @@ export default function NFCScreen({ onDetected, onNavigate }) {
   const [nfcError, setNfcError] = useState(null)
   const scannerRef = useRef(null)
 
+  const nfcListenerRef = useRef(null)
+
   useEffect(() => {
-    setNfcSupported('NDEFReader' in window)
+    if (Capacitor.isNativePlatform()) {
+      CapacitorNfc.isSupported().then(({ supported }) => {
+        setNfcSupported(supported)
+      }).catch(() => setNfcSupported(false))
+    } else {
+      setNfcSupported('NDEFReader' in window)
+    }
+    
+    return () => {
+      if (Capacitor.isNativePlatform() && nfcListenerRef.current) {
+        nfcListenerRef.current.remove()
+        CapacitorNfc.stopScanning().catch(() => {})
+      }
+    }
   }, [])
 
   // Manual tap (fallback)
@@ -50,31 +67,64 @@ export default function NFCScreen({ onDetected, onNavigate }) {
     setScanning(true)
 
     try {
-      const ndef = new NDEFReader()
-      await ndef.scan()
-      scannerRef.current = ndef
-
-      ndef.onreading = (event) => {
-        for (const record of event.message.records) {
-          if (record.recordType === 'text') {
-            const decoder = new TextDecoder(record.encoding || 'utf-8')
-            const text = decoder.decode(record.data)
-            const subject = normalizeSubject(text)
-            if (subject) {
-              setSelectedSubject(subject)
-              setDetected(true)
-              setScanning(false)
-              setTimeout(() => onDetected(subject), 800)
-              return
+      if (Capacitor.isNativePlatform()) {
+        if (nfcListenerRef.current) {
+          nfcListenerRef.current.remove()
+        }
+        nfcListenerRef.current = await CapacitorNfc.addListener('nfcEvent', (event) => {
+          const records = event?.tag?.ndefMessage || [];
+          for (const record of records) {
+            if (record.tnf === 1) { // Well-known type
+              const typeArr = record.type || [];
+              const typeChar = String.fromCharCode(...typeArr);
+              if (typeChar === 'T' || typeChar === 'U') {
+                const payloadArr = record.payload || [];
+                let text = '';
+                
+                if (typeChar === 'T') {
+                  const langLen = payloadArr[0] & 0x3F;
+                  const textArr = payloadArr.slice(1 + langLen);
+                  text = new TextDecoder('utf-8').decode(new Uint8Array(textArr));
+                } else {
+                  const textArr = payloadArr.slice(1);
+                  text = new TextDecoder('utf-8').decode(new Uint8Array(textArr));
+                }
+                
+                let subject = normalizeSubject(text);
+                if (!subject && typeChar === 'U') {
+                  const params = new URLSearchParams(text.split('?')[1] || '');
+                  subject = normalizeSubject(params.get('materie') || '');
+                }
+                
+                if (subject) {
+                  setSelectedSubject(subject);
+                  setDetected(true);
+                  setScanning(false);
+                  CapacitorNfc.stopScanning().catch(() => {});
+                  nfcListenerRef.current.remove();
+                  setTimeout(() => onDetected(subject), 800);
+                  return;
+                }
+              }
             }
           }
-          // Also try URL records (in case they wrote a URL)
-          if (record.recordType === 'url') {
-            const url = new TextDecoder().decode(record.data)
-            const params = new URLSearchParams(url.split('?')[1] || '')
-            const materie = params.get('materie')
-            if (materie) {
-              const subject = normalizeSubject(materie)
+          setNfcError('Tag-ul NFC nu conține o materie recunoscută.');
+          setScanning(false);
+          CapacitorNfc.stopScanning().catch(() => {});
+        });
+
+        await CapacitorNfc.startScanning();
+      } else {
+        const ndef = new NDEFReader()
+        await ndef.scan()
+        scannerRef.current = ndef
+
+        ndef.onreading = (event) => {
+          for (const record of event.message.records) {
+            if (record.recordType === 'text') {
+              const decoder = new TextDecoder(record.encoding || 'utf-8')
+              const text = decoder.decode(record.data)
+              const subject = normalizeSubject(text)
               if (subject) {
                 setSelectedSubject(subject)
                 setDetected(true)
@@ -83,23 +133,36 @@ export default function NFCScreen({ onDetected, onNavigate }) {
                 return
               }
             }
+            if (record.recordType === 'url') {
+              const url = new TextDecoder().decode(record.data)
+              const params = new URLSearchParams(url.split('?')[1] || '')
+              const materie = params.get('materie')
+              if (materie) {
+                const subject = normalizeSubject(materie)
+                if (subject) {
+                  setSelectedSubject(subject)
+                  setDetected(true)
+                  setScanning(false)
+                  setTimeout(() => onDetected(subject), 800)
+                  return
+                }
+              }
+            }
           }
+          setNfcError('Tag-ul NFC nu conține o materie recunoscută. Scrie exact: Fizica, Matematica, Chimie, etc.')
+          setScanning(false)
         }
-        // If we got here, couldn't parse the tag
-        setNfcError('Tag-ul NFC nu conține o materie recunoscută. Scrie exact: Fizica, Matematica, Chimie, etc.')
-        setScanning(false)
-      }
 
-      ndef.onreadingerror = () => {
-        setNfcError('Eroare la citirea tag-ului. Încearcă din nou.')
-        setScanning(false)
+        ndef.onreadingerror = () => {
+          setNfcError('Eroare la citirea tag-ului. Încearcă din nou.')
+          setScanning(false)
+        }
       }
-
     } catch (err) {
-      if (err.name === 'NotAllowedError') {
-        setNfcError('NFC-ul nu a fost permis. Dă permisiune în browser.')
-      } else if (err.name === 'NotSupportedError') {
-        setNfcError('Browserul tău nu suportă NFC. Folosește Chrome pe Android.')
+      if (err.name === 'NotAllowedError' || err.message?.includes('NotAllowed')) {
+        setNfcError('NFC-ul nu a fost permis sau trebuie activat.')
+      } else if (err.name === 'NotSupportedError' || err.message?.includes('Support')) {
+        setNfcError('Browserul sau dispozitivul nu suportă NFC.')
       } else {
         setNfcError(`Eroare NFC: ${err.message}`)
       }
@@ -110,11 +173,15 @@ export default function NFCScreen({ onDetected, onNavigate }) {
   function stopScan() {
     setScanning(false)
     setNfcError(null)
+    if (Capacitor.isNativePlatform()) {
+      CapacitorNfc.stopScanning().catch(() => {})
+      if (nfcListenerRef.current) nfcListenerRef.current.remove()
+    }
   }
 
   return (
     <div style={{ display:'flex', flexDirection:'column', flex:1, background:'linear-gradient(160deg,#e8faf9 0%,#f8f9ff 60%,#ede9fe 100%)', minHeight:0 }}>
-      <StatusBar />
+
 
       <div className="app-header">
         <div className="logo">
@@ -214,10 +281,10 @@ export default function NFCScreen({ onDetected, onNavigate }) {
             <span style={{ fontSize:20 }}>📱</span>
             <div>
               <div style={{ fontSize:13, fontWeight:800, color:'var(--text)', marginBottom:3 }}>
-                NFC nu e disponibil în acest browser
+                NFC nu este disponibil pe acest dispozitiv
               </div>
               <div style={{ fontSize:12, fontWeight:600, color:'var(--text-light)', lineHeight:1.5 }}>
-                Deschide aplicația în <strong>Chrome pe Android</strong> pentru NFC real. Aici poți selecta manual materia de mai jos.
+                Poți selecta manual materia de mai jos pentru a continua.
               </div>
             </div>
           </div>

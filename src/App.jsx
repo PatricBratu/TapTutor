@@ -69,13 +69,8 @@ export default function App() {
   }
 
   return (
-    <div className="phone-wrap">
-      <div className="phone">
-        <div className="dynamic-island" />
-        <div key={key} className="screen-enter" style={{ display:'flex', flexDirection:'column', flex:1, overflow:'hidden', minHeight:0 }}>
-          {renderScreen()}
-        </div>
-      </div>
+    <div key={key} className="screen-enter" style={{ display:'flex', flexDirection:'column', width:'100%', height:'100%', flex:1, overflow:'hidden', minHeight:0 }}>
+      {renderScreen()}
     </div>
   )
 }
